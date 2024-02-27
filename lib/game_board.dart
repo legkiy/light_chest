@@ -15,6 +15,8 @@ class _GameBoardState extends State<GameBoard> {
   int selectRow = -1;
   int selectCol = -1;
 
+  List<List<int>> validMoves = [];
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +124,52 @@ class _GameBoardState extends State<GameBoard> {
         selectCol = col;
       }
     });
+    validMoves = calculateRowValidMoves(selectRow, selectCol, selectedFig);
+  }
+
+  List<List<int>> calculateRowValidMoves(int row, int col, ChestFig? figure) {
+    List<List<int>> candidateMoves = [];
+    int direction = figure!.isWhite ? -1 : 1;
+
+    switch (figure.type) {
+      case ChestFigType.pawn:
+        if (isInBoard(row + direction, col) &&
+            board[row + direction][col] == null) {
+          candidateMoves.add([row + direction, col]);
+        }
+        if ((row == 1 && !figure.isWhite) || (row == 6 && figure.isWhite)) {
+          if (isInBoard(row + 2 *direction, col) &&
+              board[row + 2 * direction][col] == null &&
+              board[row + direction][col] == null) {
+            candidateMoves.add([row + 2 * direction, col]);
+          }
+        }
+
+        if (isInBoard(row + direction, col - 1) &&
+            board[row + direction][col - 1] != null &&
+            board[row + direction][col - 1]!.isWhite) {
+          candidateMoves.add([row + direction, col - 1]);
+        }
+
+        if (isInBoard(row + direction, col + 1) &&
+            board[row + direction][col + 1] != null &&
+            board[row + direction][col + 1]!.isWhite) {
+          candidateMoves.add([row + direction, col + 1]);
+        }
+        break;
+      case ChestFigType.rook:
+        break;
+      case ChestFigType.horse:
+        break;
+      case ChestFigType.bishop:
+        break;
+      case ChestFigType.queen:
+        break;
+      case ChestFigType.king:
+        break;
+      default:
+    }
+    return candidateMoves;
   }
 
   @override
@@ -142,12 +190,20 @@ class _GameBoardState extends State<GameBoard> {
           int col = index % 8;
 
           bool isSelected = selectRow == row && selectCol == col;
+          bool isValidMove = false;
+
+          for (var position in validMoves) {
+            if (position[0] == row && position[1] == col) {
+              isValidMove = true;
+            }
+          }
 
           return Square(
             isWhite: mustBeWhite(index),
             figure: board[row][col],
             isSelected: isSelected,
             onTap: () => figSelected(row, col),
+            isValidMove: isValidMove,
           );
         },
       ),
